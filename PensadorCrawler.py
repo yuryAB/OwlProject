@@ -11,8 +11,17 @@ class PensadorCrawler:
         soup = BeautifulSoup(site.text, 'html')
         frase_fr_class = soup.findAll("p", {"class": "frase fr"})
         phrases = []
+        file = open("pensadorPhrases.txt", "r")
+        phrases_cache = file.readlines()
+        file.close()
         for tags in frase_fr_class:
-            phrases.append(tags.text)
+            new_phrase = tags.text
+            phrases.append(new_phrase)
+            if new_phrase+'\n' not in phrases_cache:
+                file = open("pensadorPhrases.txt", "a")
+                file.write("%s\n" % new_phrase)
+                print("Adicionando Frase... ")
+                file.close()
         return phrases
     
     def getAllPhrasesFromSite(self):
@@ -23,17 +32,23 @@ class PensadorCrawler:
         all_phrases = []
         while first_result != last_result:
             new_url = self.url+url_increment
-            print('Extraindo de: ',new_url)
-            new_phrases = self.getPhrasesFromUrl(new_url)
-            all_phrases = all_phrases+new_phrases
+            file = open("siteCache.txt", "r")
+            site_cache = file.readlines()
+            file.close()
+            if new_url+'\n' not in site_cache:
+                print('Extracting from: ',new_url)
+                new_phrases = self.getPhrasesFromUrl(new_url)
+                file = open("siteCache.txt", "a")
+                file.write("%s\n" % new_url)
+                file.close()
+                all_phrases = all_phrases+new_phrases
+                if cont > 2:
+                    last_result = new_phrases
             cont+=1
             url_increment = str(cont)+'/'
-            if cont > 2:
-                last_result = new_phrases
-        return all_phrases
 
+        return all_phrases
+        
 
 crawler = PensadorCrawler()
-frases = crawler.getAllPhrasesFromSite()
-
-print(len(frases))
+all_phrases = crawler.getAllPhrasesFromSite()
